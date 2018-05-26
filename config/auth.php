@@ -18,7 +18,7 @@ return [
         'passwords' => 'users',
 
         'api' => [
-            'driver' => 'jwt',
+            'driver' => 'jwt-auth',
             'provider' => 'users',
         ],
     ],

@@ -2,8 +2,11 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Controllers\Controller;
+use App\Http\Response\Code;
 use Closure;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Exceptions\TokenBlacklistedException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 use Tymon\JWTAuth\Exceptions\UserNotDefinedException;
@@ -21,37 +24,24 @@ class VerifyJWTToken
      */
     public function handle($request, Closure $next)
     {
+        $controller = new Controller();
         try {
-
-            $user = JWTAuth::parseToken()->authenticate();
-
+            JWTAuth::parseToken()->authenticate();
         } catch (TokenExpiredException $e) {
-
-            //Token expired
-            return response()->json([
-                'status' => false,
-                'message' => 1,
-                //refresh the Token and send it back to user
-                'token' => JWTAuth::refresh(JWTAuth::getToken())
-            ]);
+            return $controller->respond_to_client(Code::$TOKEN_EXPIRED,
+                JWTAuth::refresh(JWTAuth::getToken()));
+        } catch (TokenBlacklistedException $e) {
+            //Black listed Token
+            return $controller->respond_to_client(Code::$BLACK_LISTED_TOKEN);
         } catch (TokenInvalidException $e) {
             //Invalid Token
-            return response()->json([
-                'status' => false,
-                'message' => 2,
-            ]);
+            return $controller->respond_to_client(Code::$INVALID_TOKEN);
         } catch (UserNotDefinedException $e) {
             //user not found
-            return response()->json([
-                'status' => false,
-                'message' => 4,
-            ]);
+            return $controller->respond_to_client(Code::$USER_NOT_FOUND);
         } catch (JWTException $e) {
             //Token required
-            return response()->json([
-                'status' => false,
-                'message' => 3,
-            ]);
+            return $controller->respond_to_client(Code::$NO_TOKEN);
         }
         return $next($request);
     }
