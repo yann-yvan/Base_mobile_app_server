@@ -321,8 +321,7 @@ padding: 0 35px 40px;">
 	margin-top: 40px;
 	margin-bottom: 0;
 ">Hi {{$name}},</h1>
-                        <p class="near_title last" style="margin-top: 10px;margin-bottom: 0;">Please verify that your
-                            email address is {{$email}}, and that you entered it when signing up for {{env('APP_NAME')}}
+                        <p class="near_title last" style="margin-top: 10px;margin-bottom: 0;">{{$context}}
                             .</p>
                         <b>Confirmation code : </b> <b style="color: green">{{$verification_code}}</b>
                         <br><b>PS : </b> this code will expired in 2 hours
@@ -336,7 +335,7 @@ padding: 0 35px 40px;">
 	padding: 12px 0;
 	margin: 30px auto 0;
 	text-decoration: none;
-" target="_blank">Verify email</a>
+" target="_blank">{{$button_msg}}</a>
                         <small style="	display: block;
 	width: 100%;
 	max-width: 330px;

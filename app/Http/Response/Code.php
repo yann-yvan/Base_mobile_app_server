@@ -31,6 +31,7 @@ class Code
     public static $SUCCESS = 1000;
     public static $FAILURE = -1001;
     public static $MISSING_DATA = -1002;
+    public static $EXPIRED = -1003;
 
     /*
      * Authentication message code
@@ -39,6 +40,7 @@ class Code
     public static $WRONG_USERNAME = -1101;
     public static $WRONG_PASSWORD = -1102;
     public static $WRONG_CREDENTIALS = -1103;
+    public static $ACCOUNT_VERIFIED = 1104;
 
 
     /*

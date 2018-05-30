@@ -91,11 +91,15 @@ class RegisterController extends Controller
         $verification->setToken(DT_RandomNum, 6, false, 'code');
         $verification->setToken(DT_UniqueStr, 100, false, 'token');
 
+        Verification::where('email', 'like', $email)->delete();
+
         //build verification link
         $url = url(action('Mobile\Auth\VerificationController@activateByToken', [$verification->token]));
 
+        $context = "Please verify that your
+                            email address is " . $email . ", and that you entered it when signing up for" . env('APP_NAME');
         //send email to the user address with all generated code below
-        Mail::to($email)->send(new SendVerificationData($verification->code, $url, $email, $name));
+        Mail::to($email)->later(10, new SendVerificationData($verification->code, $url, $name, $context));
 
         //save user generated code for account activation
         return $verification->save();

@@ -18,13 +18,18 @@ class SendVerificationData extends Mailable
     protected $verification_link;
     protected $name;
     protected $email;
+    protected $context;
+    protected $button_msg;
+    public $subject;
 
-    public function __construct($code, $link, $email, $name)
+    public function __construct($code, $link, $name, $context, $subject = 'Verify account', $button_msg = 'Verify email')
     {
         $this->verification_code = $code;
         $this->verification_link = $link;
         $this->name = $name;
-        $this->email = $email;
+        $this->context = $context;
+        $this->button_msg = $button_msg;
+        $this->subject = $subject;
     }
 
     /**
@@ -36,11 +41,13 @@ class SendVerificationData extends Mailable
     {
         return $this->view('auth.verification_email')
             ->from(env('MAIL_USERNAME'), env('APP_NAME'))
-            ->subject('Confirmation Code')
+            ->subject($this->subject)
             ->with(['verification_code' => $this->verification_code,
                 'url' => $this->verification_link,
                 'name' => $this->name,
-                'email' => $this->email]);
+                'context' => $this->context,
+                'button_msg' => $this->button_msg
+            ]);
 
     }
 }

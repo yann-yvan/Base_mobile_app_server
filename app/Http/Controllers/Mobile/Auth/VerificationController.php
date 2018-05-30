@@ -15,7 +15,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 class VerificationController extends Controller
 {
     private $sample_login_format = ['message' => "Please send data like in sample",
-        'sample' => "{'email' : sample@domain}"];
+        'sample' => "{'email' : 'sample@domain'}"];
 
     /**
      * Display a listing of the resource.
@@ -24,7 +24,7 @@ class VerificationController extends Controller
      */
     public function index()
     {
-        //
+        return view('auth.resend_mail_form');
     }
 
     /**
@@ -45,6 +45,10 @@ class VerificationController extends Controller
             return view('auth.verification_error')->with(['button' => true, 'message' => 'oh no, the link has expired.']);
         }
 
+        //update account verification status
+        User::where('email', $result->email)->update(array("activate" => true));
+
+
         //delete confirmation
         Verification::where('token', $result->token)->delete();
 
@@ -58,15 +62,19 @@ class VerificationController extends Controller
     public function activateByCode(Request $request)
     {
 
-        $data = json_decode($request->getContent());
-        $credentials['email'] = $data->client->email;
-        $credentials['password'] = $data->client->password;
-        $code = $data->code;
+        //decode receive information
+        $data = json_decode($request->getContent(), true);
+        $credentials = array_get($data, "user");
+        $code = array_get($data, "code");
+
+        //check data integrity
+        if (!is_array($data) or !array_key_exists("user", $data))
+            return $this->respond_to_client(Code::$WRONG_JSON_FORMAT, null, $this->sample_login_format);
+
 
         //just for check all input
-        $validate['email'] = $data->client->email;
-        $validate['password'] = $data->client->password;
-        $validate['code'] = $data->code;
+        $validate = $credentials;
+        $validate['code'] = array_get($data, "code");
 
         $token = null;
         //check if all required information are receive
@@ -78,10 +86,7 @@ class VerificationController extends Controller
 
         //return the account already exist
         if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => 1203,
-            ]);
+            return $this->respond_to_client(Code::$MISSING_DATA);
         }
 
 
@@ -93,16 +98,12 @@ class VerificationController extends Controller
 
         //check if code exist
         if (empty($result) || $result === null) {
-            return response()
-                ->json([
-                    'status' => false,
-                    'message' => 1202,
-                ], 422);
+            return $this->respond_to_client(Code::$USER_NOT_FOUND);
         }
 
 
-        //update account status to offline
-        User::where('email', $result->email)->update(array("status" => "online"));
+        //update account verification status
+        User::where('email', $result->email)->update(array("activate" => true));
 
         //delete confirmation
         Verification::where('code', $result->code)->delete();
@@ -170,9 +171,45 @@ class VerificationController extends Controller
             return $this->respond_to_client(Code::$USER_NOT_FOUND);
         }
 
+        if (boolval($user->activate))
+            return $this->respond_to_client(Code::$ACCOUNT_VERIFIED);
+
         RegisterController::sendVerificationCode(array_get($data, "email"), $user->name);
 
         return $this->respond_to_client(Code::$SUCCESS);
+    }
+
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function resendCodeWeb(Request $request)
+    {
+        //decode receive information
+        $data = ['email' => $request->email];
+
+        //make validation
+        $validator = Validator::make($data, [
+            'email' => 'required|email'
+        ]);
+
+        //check if rule respect
+        if ($validator->fails()) {
+            return response()->json(['status' => 'fails', 'msg' => $validator->errors()->get('email')]);
+        }
+
+        $user = User::where('email', '=', array_get($data, "email"))->first();
+
+        if (empty($user) || $user === null) {
+            return response()->json(['status' => 'fails', 'msg' => 'Sorry, user not found']);
+        }
+
+        if (boolval($user->activate))
+            return response()->json(['status' => 'fails', 'msg' => 'Your account is already verified']);
+
+        RegisterController::sendVerificationCode(array_get($data, "email"), $user->name);
+
+        return response()->json(['status' => 'success']);
     }
 
 
