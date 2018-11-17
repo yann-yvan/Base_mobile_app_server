@@ -32,6 +32,7 @@ class Code
     public static $FAILURE = -1001;
     public static $MISSING_DATA = -1002;
     public static $EXPIRED = -1003;
+    public static $DATA_EXIST = -1004;
 
     /*
      * Authentication message code
@@ -104,7 +105,7 @@ class Code
                     'message' => $this->message,
                     $this->data_name => $this->data
                 ];
-            else
+            else// c est a sa que ressemeble mxon api de repinse serveur
                 return [
                     'status' => $this->status,
                     'message' => $this->message,

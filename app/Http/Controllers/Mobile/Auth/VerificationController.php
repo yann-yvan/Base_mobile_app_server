@@ -124,7 +124,7 @@ class VerificationController extends Controller
             if ($user->picture != null) {
                 $user->picture = base64_encode(Image::make($user->picture)->encode('png', 50));
             }
-
+            $user->activate = boolval($user->activate);
             //return user information
             return $this->respond_to_client(Code::$SUCCESS, $token, $user);
         } else {

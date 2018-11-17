@@ -24,7 +24,6 @@ class LoginController extends Controller
     {
         //decode receive information
         $data = json_decode($request->getContent(), true);
-
         //check data integrity
         if (!is_array($data) or !array_key_exists("user", $data))
             return $this->respond_to_client(Code::$WRONG_JSON_FORMAT, null, $this->sample_login_format);
@@ -58,7 +57,7 @@ class LoginController extends Controller
             if ($user->picture != null) {
                 $user->picture = base64_encode(Image::make($user->picture)->encode('png', 50));
             }
-
+            $user->activate = boolval($user->activate);
             //return user information
             return $this->respond_to_client(Code::$SUCCESS, $token, $user);
         } else {

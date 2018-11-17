@@ -11,12 +11,18 @@
 |
 */
 
-Route::get('test', function () {
-    return response()->json([
-        'status' => true,
-        'message' => 'online',
-    ]);
+Route::GET('test', function () {
+    $controller = new \App\Http\Controllers\Controller();
+    $token = new Dirape\Token\Token();
+    return $controller->respond_to_client(\App\Http\Response\Code::$SUCCESS, $token->RandomString(100, false));
 });
+
+Route::POST('test', function () {
+    $controller = new \App\Http\Controllers\Controller();
+    $token = new Dirape\Token\Token();
+    return $controller->respond_to_client(\App\Http\Response\Code::$SUCCESS, $token->RandomString(100, false));
+});
+
 
 /**********************************************************************************************
  **********                        AUTH      ROUTE                                        *****

@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Validator;
 class RegisterController extends Controller
 {
     private $sample_login_format = ['message' => "Please send data like in sample",
-        'sample' => "{'user' : {'email' : sample@domain, 'password' : 12345678}  }"];
+        'sample' => "{'name' : 'your name','email' : sample@domain, 'password' : 12345678}"];
 
     /**
      * @param Request $request
@@ -33,13 +33,14 @@ class RegisterController extends Controller
 
         //check if all required information are receive
         $validator = Validator::make($data, [
+            'name' => 'required',
             'email' => 'required|email|unique:users',
             'password' => 'required'
         ]);
 
         //return the account already exist
         if ($validator->fails()) {
-            return $this->respond_to_client(Code::$MISSING_DATA, null, $validator->errors());
+            return $this->respond_to_client(Code::$DATA_EXIST, null, $validator->errors());
         }
 
         $user = new User();
@@ -61,8 +62,11 @@ class RegisterController extends Controller
         $user->name = array_get($data, "name");
         $user->email = array_get($data, "email");
         $user->password = Hash::make(array_get($data, "password"));
-        $success = $user->save();
-
+        try {
+            $success = $user->save();
+        } catch (\Exception $exception) {
+            return $this->respond_to_client(Code::$FAILURE);
+        }
         //check if the registration has succeed
         if (!$success)
             return $this->respond_to_client(Code::$FAILURE);
